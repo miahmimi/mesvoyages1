@@ -1,0 +1,43 @@
+{% extends "baseadmin.html.twig" %}
+
+{% block body%}
+    
+    <table class="table table-striped">
+        <thead >
+            <tr>
+                <th>
+                    ville
+                </th>
+                <th>
+                    pays
+                </th>
+                <th>
+                    Date
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for visite in visites %}
+                <tr>
+                    <td>
+                        <h5 class ="text-primary">
+                            {{ visite.ville }}
+                        </h5>
+                    </td>
+                    <td>
+                        {{ visite.pays }}
+                    </td>
+                    <td>
+                        {{ visite.datecreationstring }}
+                    </td>
+                    <td>
+                        <a href="{{ path('admin.voyage.edit',{id:visite.id}) }}" class="btn btn-secondary">Editer</a>
+                        <a href="{{ path('admin.voyage.suppr',{id:visite.id}) }}"class ="btn btn-danger"  onclick="return confirm('Etes-vous sur de vouloire suprimmer{{visite.ville }}?')">Supprimer</a>
+                    </td>
+                     {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
