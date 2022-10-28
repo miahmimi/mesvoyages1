@@ -3,15 +3,42 @@
 namespace App\Entity;
 
 use App\Repository\VisiteRepository;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+
 
 /**
- * @ORM\Entity(repositoryClass=VisiteRepository::class)
+ *  @ORM\Entity(repositoryClass=VisiteRepository::class)
+ * @Vich\Uploadable
  */
 class Visite
 {
+    /**
+     *NOTE: This is not a mapped field of entity metadata,just a simple property.
+     * 
+     * @Vich\UploadableField(mapping="visites",fileNameProperty="imageName")
+     * @Assert\Image(mimeTypes="image/jpeg")
+     * @var File|null
+     */
+    private $imageFile;
+    
+    /**
+     * @ORM\Column(type="string",length=255, nullable=true)
+     * 
+     * @var string|null
+     */
+    private $imageName;
+    
+    
+   
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -58,6 +85,15 @@ class Visite
      * @ORM\ManyToMany(targetEntity=Environnement::class)
      */
     private $environnements;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $update_at;
+     
+    
+
+    
 
     public function __construct()
     {
@@ -185,4 +221,60 @@ class Visite
 
         return $this;
     }
+     function getImageFile(): ?File {
+        return $this->imageFile;
+    }
+
+    function getImageName(): ?string {
+        return $this->imageName;
+    }
+
+    function setImageFile(File $imageFile):self {
+        $this->imageFile = $imageFile;
+        if($this->imageFile instanceof UploadedFile){
+            $this->updated_at = new DateTime('now');
+        }
+        return $this;
+    }
+
+    function setImageName( $imageName):self {
+        $this->imageName = $imageName;
+        return $this;
+    }
+
+    public function getUpdateAt(): ?\DateTimeInterface
+    {
+        return $this->update_at;
+    }
+
+    public function setUpdateAt(?\DateTimeInterface $update_at): self
+    {
+        $this->update_at = $update_at;
+
+        return $this;
+    }
+    
+    public function validate(ExecutionContextInterface $context) {
+        $image = $this->getImageFile();
+        if($image != null && $image != ""){
+            $tailleImage = @getimagesize($image);
+            if($tailleImage){
+                if($tailleImage[0]>1300 || $tailleImage[1]>1300){
+                    $context->buildViolation("Cette image est trop grande (1300x1300 max)")
+                            ->atPath('imageFile')
+                            ->addViolation();
+                }
+            }else{
+                $context->buildViolation("Ce n'est pas une image")
+                        ->atPath('imageFile')
+                        ->addViolation();
+            }
+        }
+    }
+    
 }
+    
+    
+    
+
+
